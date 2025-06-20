@@ -12,10 +12,11 @@ import { balanceRouter } from './routes/balance';
 dotenv.config();
 const app = express();
 
-app.use(cors({
-  origin: 'https://dev.hypestock.local',
-  credentials: true
-}));
+// Uncomment for production
+// app.use(cors({
+//   origin: 'https://dev.hypestock.local',
+//   credentials: true
+// }));
 app.use(express.json());
 
 app.use(jwtCheck);

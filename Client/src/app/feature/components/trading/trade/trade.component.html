@@ -1,0 +1,30 @@
+<div class="p-8 px-8 bg-secondary rounded-sm flex justify-between">
+    @if (event()) {
+        <div class="flex flex-col gap-3">
+            <div class="font-bold text-xl">
+                {{ event()?.title }} <span class="ml-2 bg-blue-600 px-1 py-[2px] rounded-sm text-[10px]">{{ event()?.category | titlecase }}</span>
+            </div>
+            <div>
+                {{ event()?.description }}
+            </div>
+        </div>
+        <div class="flex flex-col gap-3 items-end">
+            <div class="font-bold">
+                {{ event()?.date }}
+            </div>
+            <div>
+                {{ convertTo12hFormat(event()?.startTime!) }} - {{ convertTo12hFormat(event()?.endTime!) }}
+            </div>
+        </div>
+    }
+
+</div>
+<div class="grid grid-cols-12 gap-10 mt-10">
+    <div class="col-span-4">
+        <app-place-order [eventId]="event()?.id!" />
+        <app-order-book [eventId]="event()?.id!" />
+    </div>
+    <div class="col-span-8">
+        <app-live-chart [eventId]="event()?.id!" />
+    </div>
+</div>

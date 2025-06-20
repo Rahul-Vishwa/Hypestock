@@ -1,0 +1,22 @@
+<div class='flex justify-between px-10 py-5'>
+    <div class='flex flex-col justify-center text-xl font-bold '>
+        Hypestock
+    </div>
+    <div>
+        @if (user() && isLoggedIn()) {
+            <div class="flex gap-8 items-center">
+                <div>
+                    {{user()?.name}}
+                </div>
+                <button (click)="logout()" type="button" class='button'>
+                    Log Out
+                </button> 
+            </div>
+        }
+        @else {
+            <button (click)="login()" class='button'>
+                Log In
+            </button>
+        }
+    </div>
+</div>

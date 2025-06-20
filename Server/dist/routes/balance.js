@@ -41,7 +41,7 @@ router.post('/createOrder', (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 }));
 const BalanceSchema = zod_1.z.object({
-    amount: zod_1.z.string(),
+    amount: zod_1.z.number(),
     paymentId: zod_1.z.string()
 });
 router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -68,7 +68,7 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 },
                 data: {
                     balance: {
-                        increment: parseInt(amount)
+                        increment: amount
                     }
                 }
             })

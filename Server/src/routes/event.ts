@@ -3,10 +3,11 @@ import { prismaClient } from "../db/db";
 import { z } from "zod";
 import getDate from "../common/common";
 import { sendOrderBook } from "./order";
+import { setStartTimeTimeOut, timeout } from "../lib/cronJob";
 
 const router = Router();
 
-export const eventSchema = z.object({
+export const EventSchema = z.object({
     title: z.string(),
     description: z.string(),
     category: z.string(),
@@ -17,7 +18,7 @@ export const eventSchema = z.object({
 
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const data = eventSchema.parse(req.body);
+        const data = EventSchema.parse(req.body);
         
         await prismaClient.event.create({
             data: {
@@ -40,9 +41,62 @@ router.post('/', async (req: Request, res: Response) => {
     }
 });
 
+export const EventPatchSchema = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    category: z.string(),
+    date: z.string(),
+    startTime: z.string(),
+    endTime: z.string(),
+});
+router.patch('/', async (req: Request, res: Response) => {
+    try {
+        const event = EventPatchSchema.parse(req.body);
+        
+        const filter = {
+            where: {
+                id: event.id
+            }
+        };
+        const prevData = await prismaClient.event.findUnique(filter);
+
+        if (prevData?.date !== event.date) {
+            timeout.get(event.id)?.close();
+        }
+        else if (
+            prevData?.startTime !== event.startTime ||
+            prevData?.endTime !== event.endTime
+        ) {
+            timeout.get(event.id)?.close();
+            setStartTimeTimeOut(event.id, event.startTime, event.endTime);
+        }
+
+        await prismaClient.event.update({
+            ...filter,
+            data: {
+                title: event.title,
+                description: event.description,
+                category: event.category,
+                date: event.date,
+                startTime: event.startTime,
+                endTime: event.endTime,
+            }
+        });
+
+        res.json({ message: 'Event updated successfully' });
+    }
+    catch(e){
+        console.error('event.ts PATCH /');
+        console.error(e);
+        res.status(500).json({ message: 'Some error fetching data' });
+    }
+});
+
 router.get('/all', async (req: Request, res: Response) => {
     try {
-        const { page, pageSize, searchTerm } = req.query;
+        const { page, pageSize, searchTerm, myEvents } = req.query;
+        const userId = req.auth?.payload.sub;
 
         const filters: any = {
             ...(searchTerm?.toString() && {
@@ -50,6 +104,9 @@ router.get('/all', async (req: Request, res: Response) => {
                     contains: searchTerm.toString(),
                     mode: 'insensitive'
                 },
+            }),
+            ...(myEvents && {
+                createdBy: userId
             }),
             status: true
         };

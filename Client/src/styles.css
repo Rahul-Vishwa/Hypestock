@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root{
+    --primary: #0a0b0b;
+    --secondary: #1e1d21;
+    --blue: #2563EB;
+}
+
+body {
+    background-color: var(--primary);
+    color: #EEEEEE;
+}
+
+.bg-primary {
+    background-color: var(--primary);
+}
+
+.bg-secondary {
+    background-color: var(--secondary);
+}
+
+input {
+    border: none;
+    box-shadow: 0 0 0 0.2px white;
+    outline: none;
+    border-radius: 3px;
+    background-color: white;
+    padding: 10px 20px;
+    color: black;
+}
+
+.custom-dropdown {
+    border: none;
+    box-shadow: 0 0 0 0.2px white;
+    outline: none;
+    border-radius: 3px;
+    background-color: white;
+    padding: 10px 20px;
+    color: black;
+}
+
+.button {
+    background-color: var(--secondary);
+    color: white;
+    padding: 7px 20px;
+    border-radius: 3px;
+    font-size: 15px;
+}
+
+.button-white {
+    background-color: white;
+    color: black;
+    padding: 7px 20px;
+    border-radius: 3px;
+    font-size: 12px;
+}

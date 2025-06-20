@@ -10,11 +10,14 @@ const http_1 = __importDefault(require("http"));
 let io;
 function Socket(app) {
     const server = http_1.default.createServer(app);
-    exports.io = io = new socket_io_1.Server(server, {
-        cors: {
-            origin: 'https://dev.hypestock.local'
-        }
-    });
+    exports.io = io = new socket_io_1.Server(server
+    // uncomment in production
+    // ,{
+    //     cors: {
+    //         origin: 'https://dev.hypestock.local'
+    //     }
+    // }
+    );
     io.on('connection', (socket) => {
         console.log('Client connected', socket.id);
         socket.on('joinEvent', eventId => {

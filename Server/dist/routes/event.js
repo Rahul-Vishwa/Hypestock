@@ -12,14 +12,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.eventRouter = exports.eventSchema = void 0;
+exports.eventRouter = exports.EventPatchSchema = exports.EventSchema = void 0;
 const express_1 = require("express");
 const db_1 = require("../db/db");
 const zod_1 = require("zod");
 const common_1 = __importDefault(require("../common/common"));
 const order_1 = require("./order");
+const cronJob_1 = require("../lib/cronJob");
 const router = (0, express_1.Router)();
-exports.eventSchema = zod_1.z.object({
+exports.EventSchema = zod_1.z.object({
     title: zod_1.z.string(),
     description: zod_1.z.string(),
     category: zod_1.z.string(),
@@ -30,7 +31,7 @@ exports.eventSchema = zod_1.z.object({
 router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const data = exports.eventSchema.parse(req.body);
+        const data = exports.EventSchema.parse(req.body);
         yield db_1.prismaClient.event.create({
             data: {
                 title: data.title,
@@ -50,14 +51,61 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(500).json({ message: 'Error saving event' });
     }
 }));
-router.get('/all', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.EventPatchSchema = zod_1.z.object({
+    id: zod_1.z.string(),
+    title: zod_1.z.string(),
+    description: zod_1.z.string(),
+    category: zod_1.z.string(),
+    date: zod_1.z.string(),
+    startTime: zod_1.z.string(),
+    endTime: zod_1.z.string(),
+});
+router.patch('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
-        const { page, pageSize, searchTerm } = req.query;
-        const filters = Object.assign(Object.assign({}, ((searchTerm === null || searchTerm === void 0 ? void 0 : searchTerm.toString()) && {
+        const event = exports.EventPatchSchema.parse(req.body);
+        const filter = {
+            where: {
+                id: event.id
+            }
+        };
+        const prevData = yield db_1.prismaClient.event.findUnique(filter);
+        if ((prevData === null || prevData === void 0 ? void 0 : prevData.date) !== event.date) {
+            (_a = cronJob_1.timeout.get(event.id)) === null || _a === void 0 ? void 0 : _a.close();
+        }
+        else if ((prevData === null || prevData === void 0 ? void 0 : prevData.startTime) !== event.startTime ||
+            (prevData === null || prevData === void 0 ? void 0 : prevData.endTime) !== event.endTime) {
+            (_b = cronJob_1.timeout.get(event.id)) === null || _b === void 0 ? void 0 : _b.close();
+            (0, cronJob_1.setStartTimeTimeOut)(event.id, event.startTime, event.endTime);
+        }
+        yield db_1.prismaClient.event.update(Object.assign(Object.assign({}, filter), { data: {
+                title: event.title,
+                description: event.description,
+                category: event.category,
+                date: event.date,
+                startTime: event.startTime,
+                endTime: event.endTime,
+            } }));
+        res.json({ message: 'Event updated successfully' });
+    }
+    catch (e) {
+        console.error('event.ts PATCH /');
+        console.error(e);
+        res.status(500).json({ message: 'Some error fetching data' });
+    }
+}));
+router.get('/all', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { page, pageSize, searchTerm, myEvents } = req.query;
+        const userId = (_a = req.auth) === null || _a === void 0 ? void 0 : _a.payload.sub;
+        const filters = Object.assign(Object.assign(Object.assign({}, ((searchTerm === null || searchTerm === void 0 ? void 0 : searchTerm.toString()) && {
             title: {
                 contains: searchTerm.toString(),
                 mode: 'insensitive'
             },
+        })), (myEvents && {
+            createdBy: userId
         })), { status: true });
         const totalRows = yield db_1.prismaClient.event.count({
             where: filters

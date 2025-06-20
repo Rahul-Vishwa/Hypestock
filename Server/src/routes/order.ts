@@ -20,6 +20,8 @@ const OrderSchema = z.object({
 });
 
 // TODO: update balances from bids and asks once the event ends
+// TODO: Balance not correct after trading
+// TODO: Lock balance
 // The event is added in map in cron job
 export const bids: Map<string, Order[]> = new Map();
 export const asks: Map<string, Order[]> = new Map();
@@ -47,50 +49,7 @@ async function createOrder(eventId: string, userId: string, price: number, quant
     }
 }
 
-async function updateBalance(data: Order, eventId: string, userId: string, price: number, quantity: number, side: 'bid' | 'ask') {
-    try {
-        const thisUserBalance = (price * quantity);
-        const otherUserBalance = (data.price * quantity);
-        
-        // You can take the difference between the prices
-        await prismaClient.$transaction([
-            prismaClient.user.update({
-                where: { 
-                    id: userId 
-                },
-                data: {
-                    balance: {
-                        increment: side === 'ask' ? thisUserBalance : (-1 * thisUserBalance)
-                    }
-                }
-            }),
-            prismaClient.user.update({
-                where: {
-                    id: data.userId
-                },
-                data: {
-                    balance: {
-                        increment: side === 'bid' ? otherUserBalance : (-1 * otherUserBalance) 
-                    }
-                }
-            }),
-            prismaClient.order.update({
-                where: { 
-                    id: data.orderId
-                },
-                data: {
-                    remainingQty: {
-                        decrement: quantity
-                    }
-                }
-            })
-        ]);
-    }
-    catch (error) {
-        console.error('trade.ts updateBalance');
-        console.error(error);
-    }
-}
+
 
 router.post('/', async (req: Request, res: Response) => {
     const { eventId, price, quantity, side } = OrderSchema.parse(req.body);
@@ -112,7 +71,7 @@ router.post('/', async (req: Request, res: Response) => {
         return;
     }
 
-    const remainingQty = fillOrder(eventId, userId, price , quantity, side);
+    const remainingQty = await fillOrder(eventId, userId, price , quantity, side);
     const orderId = await createOrder(eventId, userId, price, quantity, remainingQty, side);
 
     if (remainingQty === 0){
@@ -147,10 +106,10 @@ router.post('/', async (req: Request, res: Response) => {
         sendOrderBook(eventId);
     }
 
-    res.json({ quantity: quantity - remainingQty });
+    res.json({ message: 'Order placed successfully', quantity: quantity - remainingQty });
 }); 
 
-function fillOrder(eventId: string, userId: string, price: number, quantity: number, side: 'bid' | 'ask'): number {
+async function fillOrder(eventId: string, userId: string, price: number, quantity: number, side: 'bid' | 'ask'): Promise<number> {
     try {
         let remainingQty = quantity;
         
@@ -164,16 +123,12 @@ function fillOrder(eventId: string, userId: string, price: number, quantity: num
 
                 if (eventAsks[i].quantity > remainingQty) {
                     eventAsks[i].quantity -= remainingQty;
-                    updateBalance(eventAsks[i], eventId, userId, price, remainingQty, side);
-                    sendOrderBook(eventId);
-                    updatePrice(eventId, price);
+                    updateInfo(eventId, eventAsks[i], userId, price, remainingQty, side);
                     return 0;
                 }
                 else {
                     remainingQty -= eventAsks[i].quantity;
-                    updateBalance(eventAsks[i], eventId, userId, price, eventAsks[i].quantity, side);
-                    sendOrderBook(eventId);
-                    updatePrice(eventId, price);
+                    updateInfo(eventId, eventAsks[i], userId, price, eventAsks[i].quantity, side);
                     eventAsks.splice(i, 1);
                 }
             }
@@ -188,16 +143,12 @@ function fillOrder(eventId: string, userId: string, price: number, quantity: num
 
                 if (eventBids[i].quantity > remainingQty) {
                     eventBids[i].quantity -= remainingQty;
-                    updateBalance(eventBids[i], eventId, userId, price, remainingQty, side);
-                    sendOrderBook(eventId);
-                    updatePrice(eventId, price);
+                    updateInfo(eventId, eventBids[i], userId, price, remainingQty, side);
                     return 0;
                 }
                 else {
                     remainingQty -= eventBids[i].quantity;
-                    updateBalance(eventBids[i], eventId, userId, price, eventBids[i].quantity, side);
-                    sendOrderBook(eventId);
-                    updatePrice(eventId, price);
+                    updateInfo(eventId, eventBids[i], userId, price, eventBids[i].quantity, side);
                     eventBids.splice(i, 1);
                 }
             }
@@ -212,6 +163,62 @@ function fillOrder(eventId: string, userId: string, price: number, quantity: num
     }
 }
 
+async function updateInfo(eventId: string, order: Order, userId: string, price: number, quantity: number, side: 'ask' | 'bid') {
+    await updateBalance(order, userId, price, quantity, side);
+    updatePrice(eventId, price);
+    sendOrderBook(eventId);
+}
+
+async function updateBalance(matchedOrder: Order, userId: string, price: number, quantity: number, side: 'bid' | 'ask') {
+    try {
+        const bidPrice = side === 'bid' ? price : matchedOrder.price; 
+        const askPrice = side === 'ask' ? price : matchedOrder.price; 
+
+        const buyerBalance = bidPrice * quantity;
+        const sellerBalance = askPrice * quantity;
+
+        // You can take the difference between the prices
+        const platformFee = buyerBalance - sellerBalance;
+        
+        await prismaClient.$transaction([
+            prismaClient.user.update({
+                where: { 
+                    id: userId 
+                },
+                data: {
+                    balance: {
+                        decrement: buyerBalance
+                    }
+                }
+            }),
+            prismaClient.user.update({
+                where: {
+                    id: matchedOrder.userId
+                },
+                data: {
+                    balance: {
+                        increment: sellerBalance
+                    }
+                }
+            }),
+            prismaClient.order.update({
+                where: { 
+                    id: matchedOrder.orderId
+                },
+                data: {
+                    remainingQty: {
+                        decrement: quantity
+                    }
+                }
+            })
+        ]);
+    }
+    catch (error) {
+        console.error('trade.ts updateBalance');
+        console.error(error);
+    }
+}
+
 function updatePrice(eventId: string, priceNow: number) {
     const prices = price.get(eventId) || [];
 
@@ -223,42 +230,49 @@ function updatePrice(eventId: string, priceNow: number) {
     io.emit('priceChanged', currentPrice);
 }
 
-export function sendOrderBook(eventId: string) {
+interface OrderBook {
+    [price: number]: {
+        side: 'bid' | 'ask',
+        quantity: number
+    }
+}
+
+function getOrderBook(eventId: string): OrderBook{
     const eventBids = bids.get(eventId) || [];
     const eventAsks = asks.get(eventId) || [];
     
-    const orders: {
-        [price: number]: {
-            side: 'bid' | 'ask',
-            quantity: number
-        }
-    } = {};
+    const order: OrderBook = {};
 
     for (let i = 0; i < eventBids.length; i++) {
-        if (!orders[eventBids[i].price]){
-            orders[eventBids[i].price] = {
+        if (!order[eventBids[i].price]){
+            order[eventBids[i].price] = {
                 side: 'bid',
                 quantity: eventBids[i].quantity
             };
         }
         else {
-            orders[eventBids[i].price].quantity += eventBids[i].quantity;
+            order[eventBids[i].price].quantity += eventBids[i].quantity;
         }
     }
     
     for (let i = 0; i < eventAsks.length; i++) {
-        if (!orders[eventAsks[i].price]){
-            orders[eventAsks[i].price] = {
+        if (!order[eventAsks[i].price]){
+            order[eventAsks[i].price] = {
                 side: 'ask',
                 quantity: eventAsks[i].quantity
             };
         }
         else {
-            orders[eventAsks[i].price].quantity += eventAsks[i].quantity;
+            order[eventAsks[i].price].quantity += eventAsks[i].quantity;
         }
     }
-    console.log(orders);
-    io.emit('orderBook', orders);
+
+    return order;
+}
+
+export function sendOrderBook(eventId: string) {
+    const orderBook = getOrderBook(eventId);
+    io.emit('orderBook', orderBook);
 }
 
 router.get('/prices', (req: Request, res: Response) => {

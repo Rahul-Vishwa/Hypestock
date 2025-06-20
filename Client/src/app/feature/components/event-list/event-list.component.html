@@ -1,0 +1,55 @@
+<div class="">
+    <div class="mb-5 text-2xl font-bold">
+        {{ myEvents() ? 'My Events' : 'All Events' }}
+    </div>
+
+    <div class="mb-6 grid grid-cols-5">
+        <div class="col-span-4">
+        <input 
+            type="text" 
+            placeholder="Search" 
+            class="input w-full" 
+            [formControl]="searchInput"
+        />
+        </div>
+        <div class="w-full flex items-center gap-5 justify-end">
+        <div (click)="onPageDecrease()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
+            </svg>
+        </div>
+        <div>
+            Page {{ pagination().page }} of {{ totalPages() === 0 ? 1 : totalPages() }}
+        </div>
+        <div (click)="onPageIncrease()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
+            </svg>
+        </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-5">
+        @for (event of eventList(); track event.id) {
+
+            <div (click)="openEvent(event.id)" class="p-8 px-8 bg-secondary rounded-sm flex justify-between">
+                <div class="flex flex-col gap-3">
+                    <div class="font-bold text-xl">
+                        {{ event.title }} <span class="ml-2 bg-blue-600 px-1 py-[2px] rounded-sm text-[10px]">{{ event.category | titlecase }}</span>
+                    </div>
+                    <div>
+                        {{ event.description }}
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3 items-end">
+                    <div class="font-bold">
+                        {{ event.date }}
+                    </div>
+                    <div>
+                        {{ convertTo12hFormat(event.startTime) }} - {{ convertTo12hFormat(event.endTime) }}
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

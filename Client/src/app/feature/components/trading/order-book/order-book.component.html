@@ -1,0 +1,30 @@
+<div class="mt-5">
+    <div class="text-[12px] rounded-md w-full">
+        <table class="w-full">
+            <thead>
+                <tr>
+                    <td class="px-2 py-1">Price</td>
+                    <td class="text-center px-2 py-1">Qty.</td>
+                    <td class="text-end px-2 py-1">Type</td>
+                </tr>
+            </thead>
+            <tbody>
+                @for (order of orderBook(); track order[0]) {
+                    <tr
+                        [class]="'text-white ' + order[1].side === 'bid' ? 'bg-[#2962FF]' : 'bg-[#9928d1]'"
+                    >
+                        <td class="px-2 py-1">
+                            {{ order[0] }}
+                        </td>
+                        <td class="text-center px-2 py-1">
+                            {{ order[1].quantity }}
+                        </td>
+                        <td class="text-end px-2 py-1">
+                            {{ order[1].side }}
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

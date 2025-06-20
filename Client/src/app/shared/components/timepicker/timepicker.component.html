@@ -1,0 +1,74 @@
+<div>
+    <label [for]="showTimeDropdown" class="light-font">{{label()}} 
+        @if (label() && isRequired) {
+            <span class="text-red-700">*</span>
+        }
+    </label>
+</div>
+<div (clickOutside)="closeTimepicker()" class="relative">
+    <div 
+        [id]="id()"
+        tabindex="0"
+        (click)="toggleTimepicker()"
+        class="mt-1 w-56 h-9 px-4 border-1 rounded-md bg-primary-color-lighter primary-font-color border-primary-color custom-datepicker flex items-center justify-between cursor-pointer"
+        [ngClass]="{'is-invalid': isInvalid && !showTimeDropdown, 'is-open': showTimeDropdown}"
+    >
+        <span class="truncate">{{ timeToShow || 'hh:mm aa' }}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" stroke="currentColor" stroke-width="0.5" class="bi bi-clock" viewBox="-0.3 0 17 16">
+            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
+        </svg>
+    </div>
+    @if (showTimeDropdown) {
+        <div id="timeDropdown" class="w-56 overflow-hidden text-sm calendar-popup flex flex-col primary-font-color absolute z-10 mt-1 bg-primary-color-lighter rounded-md shadow-lg border border-primary-color">
+            <div class="w-56 flex">
+                <div class="digitscontainer">
+                    @for (item of hours; track $index) {
+                    <div 
+                        class="digits" 
+                        [ngClass]="{'selectedDigit': hour==item}" 
+                        (click)="hour=item; onSelection();"
+                    >
+                        <div>
+                        {{item}}
+                        </div>
+                    </div>
+                    }
+                </div>
+                <div class="digitscontainer">
+                    @for (item of minutes; track $index) {
+                    <div
+                        class="digits" 
+                        [ngClass]="{'selectedDigit': minute==item}" 
+                        (click)="minute=item; onSelection();"
+                    >
+                        <div>
+                        {{item}}
+                        </div>
+                    </div>
+                    }
+                </div>
+                <div class="digitscontainer">
+                    <div 
+                        class="digits"
+                        [ngClass]="{'selectedDigit': meridian=='AM'}" 
+                        (click)="meridian='AM'; onSelection();"
+                    >
+                        <div>
+                        AM
+                        </div>
+                    </div>
+                    <div
+                        class="digits"
+                        [ngClass]="{'selectedDigit': meridian=='PM'}" 
+                        (click)="meridian='PM'; onSelection();" 
+                    >
+                        <div>
+                        PM
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

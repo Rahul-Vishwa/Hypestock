@@ -34,7 +34,7 @@ router.post('/createOrder', async (req: Request, res: Response) => {
 });
 
 const BalanceSchema = z.object({
-    amount: z.string(),
+    amount: z.number(),
     paymentId: z.string()
 });
 router.post('/', async (req: Request, res: Response) => {
@@ -62,11 +62,12 @@ router.post('/', async (req: Request, res: Response) => {
                 },
                 data: {
                     balance: {
-                        increment: parseInt(amount)
+                        increment: amount
                     }
                 }
             })
         ]);
+
 
         const user = await prismaClient.user.findUnique({
             where: {

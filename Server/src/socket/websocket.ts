@@ -7,11 +7,14 @@ let io: Server;
 
 export default function Socket(app: Express) {
     const server = http.createServer(app);
-    io = new Server(server , {
-        cors: {
-            origin: 'https://dev.hypestock.local'
-        }
-    });
+    io = new Server(server
+        // uncomment in production
+        // ,{
+        //     cors: {
+        //         origin: 'https://dev.hypestock.local'
+        //     }
+        // }
+    );
     
     io.on('connection', (socket) => {
         console.log('Client connected', socket.id);

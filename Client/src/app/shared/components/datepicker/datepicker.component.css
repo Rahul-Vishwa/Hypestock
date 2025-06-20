@@ -1,0 +1,110 @@
+.custom-datepicker {
+    /* transition: all 0.2s ease; */
+}
+
+div.custom-datepicker:focus {
+    outline: none !important;
+    border: 2px solid var(--light-font);
+}
+
+.custom-input:focus {
+    outline: none;
+    border: 2px solid var(--primary-color-border);
+}
+
+.is-invalid {
+    border: 2px solid var(--error-color);
+}
+
+/* WebKit browsers */
+.date-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* Firefox */
+.date-input::-moz-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* Edge */
+.date-input::-ms-clear {
+    color: white;
+}
+
+.calendar-popup {
+    min-width: 280px;
+    animation: slideDown 0.2s ease;
+}
+
+.calendar-header button {
+    color: var(--primary-font-color);
+}
+
+.calendar-header button:hover {
+    background-color: var(--primary-color-light);
+}
+
+.month-dropdown,
+.year-dropdown {
+    animation: slideDown 0.2s ease;
+}
+
+.month-dropdown div,
+.year-dropdown div {
+    color: var(--primary-font-color);
+}
+
+.month-dropdown div:hover,
+.year-dropdown div:hover {
+    background-color: var(--primary-color-light);
+}
+
+.month-dropdown div.selected,
+.year-dropdown div.selected {
+    background-color: var(--primary-color-light);
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    color: var(--primary-font-color);
+}
+
+.calendar-day:hover {
+    color: var(--primary-color-lighter);
+}
+
+.calendar-day.selected {
+    background-color: var(--primary-color);
+    color: var(--primary-color-lighter);
+}
+
+.calendar-day.empty {
+    cursor: default;
+    pointer-events: none;
+}
+
+.calendar-day.disabled {
+    color: var(--light-font);
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.calendar-day.disabled:hover {
+    background-color: transparent;
+    color: var(--light-font);
+}
+
+.date-class:hover{
+    background-color: var(--primary-color-light);
+}
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+} 

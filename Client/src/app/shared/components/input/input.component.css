@@ -1,0 +1,7 @@
+.is-invalid{
+    border: 1px solid red;
+}
+.disabled{
+    background-color: var(--primary-color-lighter);
+    color: var(--light-font);
+}

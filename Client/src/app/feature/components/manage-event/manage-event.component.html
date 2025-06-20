@@ -1,0 +1,68 @@
+<div class="text-2xl font-bold">
+    {{ form.controls['id'].value ? 'Edit Event' : 'Create Event' }}
+</div>
+<div class="mt-5 grid grid-cols-6 gap-5 gap-y-8">
+    <div class="col-span-3">
+        <app-input
+            type="text"
+            id="title"
+            label="Title"
+            [formControl]="form.controls['title']"
+            [maxlength]="200"
+        ></app-input>
+    </div>
+    <div class="col-span-3">
+        <app-dropdown
+            id="category"
+            label="Category"
+            [formControl]="form.controls['category']"
+            [options]="categories()"
+        ></app-dropdown>
+    </div>
+    <div class="col-span-6">
+        <app-input
+            type="text"
+            id="description"
+            label="Description"
+            [formControl]="form.controls['description']"
+            [maxlength]="500"
+        ></app-input>
+    </div>
+    <div class="col-span-2">
+        <app-input
+            type="date"
+            id="date"
+            label="Date"
+            [formControl]="form.controls['date']"
+        ></app-input>
+    </div>
+    <div class="col-span-2">
+        <app-input
+            type="time"
+            id="startTime"
+            label="Start Time"
+            [formControl]="form.controls['startTime']"
+        ></app-input>
+    </div>
+    <div class="col-span-2">
+        <app-input
+            type="time"
+            id="endTime"
+            label="End Time"
+            [formControl]="form.controls['endTime']"
+        ></app-input>
+    </div>
+    <div>
+        <button 
+            type="button"
+            (click)="manageEvent()" 
+            [disabled]="form.invalid || form.pristine" 
+            class="bg-white text-black px-5 py-2 rounded-sm"
+            [ngClass]="{
+                'bg-secondary cursor-not-allowed': form.invalid || form.pristine,
+            }"
+        >
+            {{ form.controls['id'].value ? 'Edit' : 'Create' }}
+        </button>
+    </div>
+</div>

@@ -1,0 +1,30 @@
+<div class="flex flex-col gap-5 items-start">
+    <div class="text-2xl font-bold">
+        Balance
+    </div>
+    <div class="bg-secondary text-xl w-[500px] text-center rounded-md p-10 py-24">
+        Rs. {{ balance() }}
+    </div>
+    <div class="flex w-[500px] justify-between gap-10">
+    <div>
+        <input 
+            type="number" 
+            id="balance" 
+            [formControl]="input"
+            class="py-2 px-3 text-black rounded-sm outline-none" 
+        />
+    </div>
+    <button 
+        id="renderBtn" 
+        type="submit"
+        [disabled]="input.invalid" 
+        class="bg-white text-black px-5 py-2 w-full rounded-sm"
+        [ngClass]="{
+            'bg-secondary cursor-not-allowed': input.invalid
+        }" 
+        (click)="addBalance()"
+    >
+        Add Balance
+    </button>
+    </div>
+</div>
