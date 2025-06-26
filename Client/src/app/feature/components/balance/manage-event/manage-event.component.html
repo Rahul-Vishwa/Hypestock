@@ -1,8 +1,8 @@
 <div class="text-2xl font-bold">
     {{ form.controls['id'].value ? 'Edit Event' : 'Create Event' }}
 </div>
-<div class="mt-5 grid grid-cols-6 gap-5 gap-y-8">
-    <div class="col-span-3">
+<div class="mt-5 grid grid-cols-8 gap-5 gap-y-8">
+    <div class="col-span-4">
         <app-input
             type="text"
             id="title"
@@ -11,7 +11,7 @@
             [maxlength]="200"
         ></app-input>
     </div>
-    <div class="col-span-3">
+    <div class="col-span-4">
         <app-dropdown
             id="category"
             label="Category"
@@ -19,7 +19,7 @@
             [options]="categories()"
         ></app-dropdown>
     </div>
-    <div class="col-span-6">
+    <div class="col-span-8">
         <app-input
             type="text"
             id="description"
@@ -34,6 +34,7 @@
             id="date"
             label="Date"
             [formControl]="form.controls['date']"
+            (ngModelChange)="onDateChange()"
         ></app-input>
     </div>
     <div class="col-span-2">
@@ -42,6 +43,7 @@
             id="startTime"
             label="Start Time"
             [formControl]="form.controls['startTime']"
+            (ngModelChange)="onTimeChange(form.controls['startTime']); onDateChange();"
         ></app-input>
     </div>
     <div class="col-span-2">
@@ -50,6 +52,16 @@
             id="endTime"
             label="End Time"
             [formControl]="form.controls['endTime']"
+            (ngModelChange)="onTimeChange(form.controls['endTime']); onDateChange();"
+        ></app-input>
+    </div>
+    <div class="col-span-2">
+        <app-input
+            type="number"
+            id="ipo"
+            label="IPO"
+            [formControl]="form.controls['ipo']"
+            [maxlength]="7"
         ></app-input>
     </div>
     <div>

@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import convertTo12hFormat from '../../../../shared/utility/time';
 import { EventService } from '../../../services/event.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Event } from '../../../../shared/interface/interface';
+import { Event, Status } from '../../../../shared/interface/interface';
 import { PlaceOrderComponent } from "../place-order/place-order.component";
 import { OrderBookComponent } from "../order-book/order-book.component";
 import { LiveChartComponent } from "../live-chart/live-chart.component";
@@ -24,6 +24,7 @@ import { SocketService } from '../../../../core/services/socket.service';
 export class TradeComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
   event = signal<Event | null>(null);
+  status = signal<string | null>(null);
 
   constructor(
     private eventService: EventService,
@@ -47,6 +48,16 @@ export class TradeComponent implements OnInit, OnDestroy {
         this.router.navigate(['notFound']);
       }
     });
+
+    this.socket.onIpoStart(() => {
+      this.status.set(Status.ipoPhase);
+    });
+    this.socket.onEventStart(() => {
+      this.status.set(Status.started);
+    });
+    this.socket.onEventEnd(() => {
+      this.status.set(Status.ended);
+    });
   }
 
   convertTo12hFormat(time: string) {
@@ -55,5 +66,6 @@ export class TradeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    this.socket.disconnect();
   }
 }

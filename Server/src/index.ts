@@ -8,6 +8,7 @@ import { jwtCheck } from './middlewares/auth';
 import { eventRouter } from './routes/event';
 import { orderRouter } from './routes/order';
 import { balanceRouter } from './routes/balance';
+import { connect } from './redis/redis';
 
 dotenv.config();
 const app = express();
@@ -27,5 +28,6 @@ app.use('/order', orderRouter);
 app.use('/balance', balanceRouter);
 
 registerCronJobs();
+connect();
 
 webSocket(app);

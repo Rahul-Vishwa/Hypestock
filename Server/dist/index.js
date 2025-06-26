@@ -12,6 +12,7 @@ const auth_1 = require("./middlewares/auth");
 const event_1 = require("./routes/event");
 const order_1 = require("./routes/order");
 const balance_1 = require("./routes/balance");
+const redis_1 = require("./redis/redis");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 // Uncomment for production
@@ -26,4 +27,5 @@ app.use('/event', event_1.eventRouter);
 app.use('/order', order_1.orderRouter);
 app.use('/balance', balance_1.balanceRouter);
 (0, cronJob_1.registerCronJobs)();
+(0, redis_1.connect)();
 (0, websocket_1.default)(app);

@@ -1,25 +1,29 @@
-<div class="">
-  <div>
-    <label [for]="id()" class="light-font">{{label()}}</label>
-  </div>
-  <div class="relative">
+<div>
+  @if (label()) {
+    <div class="mb-1">
+      <label [for]="id()" class="light-font">{{label()}}</label>
+    </div>
+  }
+  <div class="relative z-50">
     <button 
       type="button"
       [id]="id()"
-      (click)="toggleDropdown()"
-      class="mt-1 w-full border-1 border-red-700 rounded-sm custom-dropdown flex items-center justify-between"
+      (click)="!disabled() && toggleDropdown()"
+      class="w-full border-1 border-red-700 rounded-sm custom-dropdown flex items-center justify-between"
       [ngClass]="{'is-invalid': isInvalid, 'is-open': isOpen}"
     >
       <span class="truncate">{{ getSelectedLabel() || 'Select an option' }}</span>
-      <svg 
-        class="w-4 h-4 transition-transform duration-200" 
-        [class.rotate-180]="isOpen"
-        fill="none" 
-        stroke="currentColor" 
-        viewBox="0 0 24 24"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-      </svg>
+      @if (!disabled()) {
+        <svg 
+          class="w-4 h-4 transition-transform duration-200" 
+          [class.rotate-180]="isOpen"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      }
     </button>
     
     @if (isOpen) {

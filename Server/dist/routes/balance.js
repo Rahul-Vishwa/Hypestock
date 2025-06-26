@@ -27,7 +27,7 @@ router.post('/createOrder', (req, res) => __awaiter(void 0, void 0, void 0, func
         const payment = yield db_1.prismaClient.payment.create({
             data: {
                 amount: amount,
-                status: 'failed',
+                status: 'Failed',
                 createdBy: userId
             }
         });
@@ -59,7 +59,7 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     id: paymentId
                 },
                 data: {
-                    status: 'successfull'
+                    status: 'Successfull'
                 }
             }),
             db_1.prismaClient.user.update({
@@ -78,7 +78,7 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 id: userId
             }
         });
-        res.json({ balance: user === null || user === void 0 ? void 0 : user.balance });
+        res.json({ balance: user === null || user === void 0 ? void 0 : user.balance, lockedBalance: user === null || user === void 0 ? void 0 : user.lockedBalance });
     }
     catch (error) {
         console.error('payment.ts /');
@@ -108,18 +108,25 @@ router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 }));
 router.get('/allPayments', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const { userId } = req.query;
+        const page = parseInt(req.query.page);
+        const pageSize = parseInt(req.query.pageSize);
+        const userId = (_a = req.auth) === null || _a === void 0 ? void 0 : _a.payload.sub;
         if (!userId) {
             res.json({ message: 'User not found' });
             return;
         }
-        const payments = yield db_1.prismaClient.payment.findMany({
+        const filters = {
             where: {
                 createdBy: userId.toString()
-            }
-        });
-        res.json({ payments });
+            },
+        };
+        const totalRows = yield db_1.prismaClient.payment.count(filters);
+        const payments = yield db_1.prismaClient.payment.findMany(Object.assign(Object.assign({}, filters), { orderBy: {
+                createdAt: 'desc'
+            }, skip: (page - 1) * pageSize, take: pageSize }));
+        res.json({ payments, totalRows });
     }
     catch (error) {
         console.error('payment.ts /');

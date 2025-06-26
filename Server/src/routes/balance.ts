@@ -18,7 +18,7 @@ router.post('/createOrder', async (req: Request, res: Response) => {
         const payment = await prismaClient.payment.create({
             data: {
                 amount: amount,
-                status: 'failed',
+                status: 'Failed',
                 createdBy: userId
             }
         });
@@ -53,7 +53,7 @@ router.post('/', async (req: Request, res: Response) => {
                     id: paymentId
                 },
                 data: {
-                    status: 'successfull'
+                    status: 'Successfull'
                 }
             }),
             prismaClient.user.update({
@@ -75,7 +75,7 @@ router.post('/', async (req: Request, res: Response) => {
             }
         });
 
-        res.json({ balance: user?.balance });
+        res.json({ balance: user?.balance, lockedBalance: user?.lockedBalance });
     }
     catch (error) {
         console.error('payment.ts /');
@@ -109,21 +109,34 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 router.get('/allPayments', async (req: Request, res: Response) => {
-    try { 
-        const { userId } = req.query; 
+    try {
+        const page = parseInt(req.query.page as string);
+        const pageSize = parseInt(req.query.pageSize as string);
+        const userId = req.auth?.payload.sub; 
         
         if (!userId) {
             res.json({ message: 'User not found' });
             return;
         }
-
-       const payments = await prismaClient.payment.findMany({
+        
+        const filters = {
             where: {
                 createdBy: userId.toString()
-            }
+            },
+        };
+
+        const totalRows = await prismaClient.payment.count(filters);
+
+        const payments = await prismaClient.payment.findMany({
+            ...filters,
+            orderBy: {
+                createdAt: 'desc'
+            },
+            skip: (page - 1) * pageSize,
+            take: pageSize
         });
 
-        res.json({ payments });
+        res.json({ payments, totalRows });
     }
     catch (error) {
         console.error('payment.ts /');

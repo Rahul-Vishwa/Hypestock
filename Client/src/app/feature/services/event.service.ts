@@ -10,7 +10,7 @@ export class EventService {
 
   constructor(private http: HttpClient) { }
 
-  getEvents(pagination: Pagination, myEvents: boolean): Observable<EventApiResponse> {
+  getEvents(pagination: Pagination, filter: string, myEvents: boolean): Observable<EventApiResponse> {
     let params = new HttpParams({
       fromObject: {
         page: pagination.page,
@@ -21,6 +21,9 @@ export class EventService {
 
     if (pagination.searchTerm) {
       params = params.set('searchTerm', pagination.searchTerm);
+    }
+    if (filter !== 'All') {
+      params = params.set('filter', filter);
     }
     return this.http.get<EventApiResponse>('event/all', {
       params
@@ -43,8 +46,16 @@ export class EventService {
     return this.http.patch<{ message: string }>('event', data);
   }
 
-  isRunning(eventId: string): Observable<{ isRunning: boolean }> {
-    return this.http.get<{ isRunning: boolean }>('event/isRunning', {
+  deleteEvent(eventId: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>('event', {
+      params: {
+        eventId
+      }
+    });
+  }
+
+  canEdit(eventId: string): Observable<{ canEdit: boolean }> {
+    return this.http.get<{ canEdit: boolean }>('event/canEdit', {
       params: {
         eventId
       }

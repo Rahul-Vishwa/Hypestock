@@ -7,7 +7,7 @@ import { AsyncPipe, NgClass } from "@angular/common";
     selector: 'app-toast',
     imports: [NgClass, AsyncPipe],
     template: `
-        <div class="absolute top-0 right-0 z-10 m-3">
+        <div class="fixed top-0 right-0 z-40 m-3">
             @for (toast of toastService.toasts$ | async; track trackById(toast)) {
                 <div  [ngClass]="{ 'bg-blue-600': toast.class === 'info', 'bg-red-500': toast.class === 'error' }" class="text-[14px] w-96 flex gap-5 justify-between items-center m-2 px-6 py-5 lighter-font-color rounded-sm shadow-md">  
                     <div [innerHTML]="sanitizeHtml(toast.message)">    

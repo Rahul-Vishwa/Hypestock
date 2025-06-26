@@ -1,7 +1,8 @@
 import { Server } from 'socket.io';
 import { Express } from 'express';
 import http from 'http';
-import { sendOrderBook } from '../routes/order';
+import { runningEvents, runningIPOs } from '../lib/cronJob';
+import { price, sendOrderBook } from '../routes/order';
 
 let io: Server;
 
@@ -17,26 +18,38 @@ export default function Socket(app: Express) {
     );
     
     io.on('connection', (socket) => {
-        console.log('Client connected', socket.id);
-
-        socket.on('joinEvent', eventId => {
-            console.log('Event Joined, Event id: ', eventId);
+        socket.on('joinEvent', async eventId => {
             socket.join(eventId);
+            emitEventStatus(eventId);
         });
-
+        socket.on('statusRequest', eventId => {
+            emitEventStatus(eventId);
+        });
+        socket.on('orderBookRequest', eventId => {
+            sendOrderBook(eventId);
+        });
+        socket.on('priceRequest', eventId => {
+            io.send('orderBook', price.get(eventId) || []);
+        });
         socket.on('leaveMatch', eventId => {
-            console.log('Event left, Event id: ', eventId);
             socket.leave(eventId);
         });
-
         socket.on('disconnect', (reason) => {
-            console.log('Client disconnected', socket.id, 'Reason:', reason);
         });
     });
 
     server.listen(3000, () => {
         console.log(`Listening on port ${3000}`);
     });
+}
+
+async function emitEventStatus(eventId: string) {
+    if (runningIPOs.has(eventId)) {
+        io.emit('ipoStarted');
+    }
+    if (runningEvents.has(eventId)) {
+        io.emit('eventStarted');
+    }
 }
 
 export { io };

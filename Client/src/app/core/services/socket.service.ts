@@ -21,8 +21,24 @@ export class SocketService {
     this.socket()?.disconnect();
   } 
 
+  emitStatusRequest(eventId: string) {
+    this.socket()?.emit('statusRequest', eventId);
+  }
+
+  emitOrderBookRequest(eventId: string) {
+    this.socket()?.emit('orderBookRequest', eventId);
+  }
+
+  emitPriceRequest(eventId: string) {
+    this.socket()?.emit('priceRequest', eventId);
+  }
+
   isConnected() { 
     return this.socket() ? this.socket()?.connected : false;
+  }
+
+  onIpoStart(callback: () => void) {
+    this.socket()?.on('ipoStarted', callback);
   }
 
   onEventStart(callback: () => void) {

@@ -1,18 +1,22 @@
 import { booleanAttribute, Component, OnInit, signal } from '@angular/core';
-import { EventList, Pagination } from '../../../shared/interface/interface';
+import { EventList, Pagination, Status } from '../../../shared/interface/interface';
 import { EventService } from '../../services/event.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TitleCasePipe } from '@angular/common';
+import { NgClass, TitleCasePipe } from '@angular/common';
 import convertTo12hFormat from '../../../shared/utility/time';
 import { debounceTime, Subscription } from 'rxjs';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ToastService } from '../../../shared/services/toast.service';
+import { DropdownComponent } from "../../../shared/components/dropdown/dropdown.component";
 
 @Component({
   selector: 'app-event-list',
   imports: [
     TitleCasePipe,
-    ReactiveFormsModule
-  ],
+    ReactiveFormsModule,
+    NgClass,
+    DropdownComponent
+],
   templateUrl: './event-list.component.html',
   styleUrl: './event-list.component.css',
 })
@@ -27,11 +31,21 @@ export class EventListComponent implements OnInit {
     searchTerm: null
   });
   searchInput = new FormControl('');
+  filter = new FormControl('All');
+  showDeleteIcon = signal<string | null>(null);
+  filters = [
+    { label: 'All', value: 'All' },
+    { label: Status.upcoming, value: Status.upcoming },
+    { label: Status.ipoPhase, value: Status.ipoPhase },
+    { label: Status.started, value: Status.started },
+    { label: Status.ended, value: Status.ended },
+  ];
 
   constructor(
     private event: EventService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -48,6 +62,7 @@ export class EventListComponent implements OnInit {
     this.subscription.add(
       this.event.getEvents(
         this.pagination(), 
+        this.filter.value!, 
         this.myEvents()
       )
       .subscribe(data => {
@@ -57,6 +72,11 @@ export class EventListComponent implements OnInit {
     );
   }
 
+  onFilterChange() {
+    this.pagination.update(prev => ({ ...prev, page: 1 }));
+    this.getEvents();
+  }
+
   searchEvent() {
     this.subscription.add(
       this.searchInput.valueChanges
@@ -64,7 +84,11 @@ export class EventListComponent implements OnInit {
         debounceTime(200)
       )
       .subscribe(searchTerm => {
-        this.pagination.update(prev => ({ ...prev, searchTerm }));
+        this.pagination.set({ 
+          page: 1,
+          pageSize: 10, 
+          searchTerm 
+        });
         this.getEvents();
       })
     );
@@ -91,11 +115,24 @@ export class EventListComponent implements OnInit {
     }
   }
 
+  deleteEvent(id: string) {
+    if (this.myEvents()) {
+      this.subscription.add(
+        this.event.deleteEvent(id)
+        .subscribe(({ message }) => {
+          this.toast.info(message);
+          this.getEvents();
+        })
+      );
+    }
+  }
+
   onPageDecrease() {
     if (this.pagination().page > 1){
       this.pagination.update(prev => ({ ...prev, page: prev.page - 1 }));
     }
     this.getEvents();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   onPageIncrease() {
@@ -103,6 +140,7 @@ export class EventListComponent implements OnInit {
       this.pagination.update(prev => ({ ...prev, page: prev.page + 1 }));
     }
     this.getEvents();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   convertTo12hFormat(time: string) {

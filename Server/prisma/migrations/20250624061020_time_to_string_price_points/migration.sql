@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "PricePoints" ALTER COLUMN "time" SET DATA TYPE TEXT;

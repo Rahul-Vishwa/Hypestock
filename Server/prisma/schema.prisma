@@ -13,10 +13,21 @@ model User {
   nickName      String        
   name          String  
   balance       Int           @default(0)
+  lockedBalance Int           @default(0)
 
   orders        Order[]
   events        Event[]
   payments      Payment[]
+  holdings      Holding[]
+}
+
+model PricePoints {
+  id              String          @id @default(uuid())
+  eventId         String
+  value           Int             
+  time            String           
+
+  event         Event           @relation(fields: [eventId], references: [id])            
 }
 
 model Event {
@@ -27,11 +38,14 @@ model Event {
   date            String
   startTime       String
   endTime         String
+  ipo             Int             @default(0)
   createdBy       String
   createdAt       DateTime        @default(now())
-  status          Boolean         @default(true)
+  status          String          @default("Upcoming")
 
+  pricePoints     PricePoints[]
   orders          Order[]
+  holdings        Holding[]
 
   user            User            @relation(fields: [createdBy], references: [id])
 }
@@ -47,6 +61,16 @@ model Order {
   createdAt       DateTime        @default(now())
 
   user            User            @relation(fields: [createdBy], references: [id])
+  event           Event           @relation(fields: [eventId], references: [id])
+}
+
+model Holding {
+  id              String          @id @default(uuid())
+  eventId         String
+  quantity        Int
+  userId          String
+
+  user            User            @relation(fields: [userId], references: [id])
   event           Event           @relation(fields: [eventId], references: [id])
 }
 

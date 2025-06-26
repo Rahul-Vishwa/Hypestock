@@ -1,4 +1,4 @@
-<div class="flex gap-3 rounded-sm fixed bottom-5 left-10 bg-secondary py-3 px-3">
+<div class="flex gap-3 rounded-sm fixed bottom-5 left-10 bg-tertiary py-3 px-3 z-50">
     <div routerLink="/home/manageEvent">
         <button class="button-white">Create Event</button>
     </div>
@@ -7,6 +7,12 @@
     </div>
     <div (click)="openEventList(false)">
         <button class="button-white">All Events</button>
+    </div>
+    <div routerLink="/home/orders">
+        <button class="button-white">Orders</button>
+    </div>
+    <div routerLink="/home/holdings">
+        <button class="button-white">Holdings</button>
     </div>
     <div routerLink="/home/balance">
         <button class="button-white">Balance</button>

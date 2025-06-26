@@ -21,7 +21,9 @@
     });
 
     ngOnChanges() {
-      this.newSeries().setData(this.data());
+      if (this.newSeries()){
+        this.newSeries().setData(this.data());
+      }
     }
 
     ngAfterViewInit(): void {
@@ -35,8 +37,8 @@
       }
       const chart = createChart(container, {
         layout: {
-            background: { type: ColorType.Solid, color: this.colors().backgroundColor },
-            textColor: this.colors().textColor,
+          background: { type: ColorType.Solid, color: this.colors().backgroundColor },
+          textColor: this.colors().textColor,
         },
         width: container.clientWidth,
         height: 300,
@@ -48,12 +50,21 @@
             color: 'transparent',
           },
         },
+        timeScale: {
+          timeVisible: true,
+          secondsVisible: true,
+          tickMarkFormatter: (time: number) => {
+            const date = new Date(time * 1000);
+            return date.toLocaleTimeString();
+          }
+        },
+        crosshair: {
+          vertLine: {
+            labelVisible: false
+          },
+        }
       });
       chart.timeScale().fitContent();
-      chart.timeScale().applyOptions({
-        timeVisible: true,
-        secondsVisible: true,
-      });
 
       this.newSeries.set(chart.addSeries(AreaSeries, { 
         lineColor: this.colors().lineColor, 

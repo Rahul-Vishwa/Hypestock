@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, input } from '@angular/core';
+import { Component, input, signal } from '@angular/core';
 import { ControlValueAccessor, FormControl, FormsModule, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { ClickOutsideDirective } from '../../directives/click-outside.directive';
 
@@ -27,6 +27,7 @@ export class DropdownComponent implements ControlValueAccessor {
   value: string | number = '';
   formControl = input.required<FormControl>();
   isOpen = false;
+  disabled = signal<boolean>(false);
   
   private onChange = (value: string | number) => {};
   private onTouched = () => {};
@@ -71,5 +72,9 @@ export class DropdownComponent implements ControlValueAccessor {
 
   get isRequired(): boolean {
     return this.formControl().hasValidator(Validators.required);
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled.set(isDisabled);
   }
 }

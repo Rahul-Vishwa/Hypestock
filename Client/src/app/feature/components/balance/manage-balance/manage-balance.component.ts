@@ -1,26 +1,34 @@
 import { NgClass } from '@angular/common';
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { Subscription } from 'rxjs';
-import { BalanceService } from '../../services/balance.service';
+import { Subject, Subscription } from 'rxjs';
+import { BalanceService } from '../../../services/balance.service';
 // @ts-ignore
 import { load } from "@cashfreepayments/cashfree-js";
+import { PaymentHistoryComponent } from "../../payment-history/payment-history.component";
+import { Balance, Pagination } from '../../../../shared/interface/interface';
 
 
 @Component({
   selector: 'app-manage-balance',
   imports: [
     NgClass,
-    ReactiveFormsModule
-  ],
+    ReactiveFormsModule,
+    PaymentHistoryComponent
+],
   templateUrl: './manage-balance.component.html',
   styleUrl: './manage-balance.component.css'
 })
 export class ManageBalanceComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
-  balance = signal<number>(0);
-  input = new FormControl(null, [ Validators.required ]);
+  balance = signal<Balance>({
+    balance: 0,
+    lockedBalance: 0
+  });
+  input = new FormControl(null, [ Validators.required, Validators.max(999999) ]);
   cashfree = signal<any>(null);
+  private $refreshPaymentHistory = new Subject<void>();
+  refresh = this.$refreshPaymentHistory.asObservable();
 
   constructor(
     private balanceService: BalanceService
@@ -29,8 +37,11 @@ export class ManageBalanceComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     this.subscription.add(
       this.balanceService.getBalance()
-        .subscribe(({ balance }) => {
-          this.balance.set(balance);
+        .subscribe(({ balance, lockedBalance }) => {
+          this.balance.set({
+            balance,
+            lockedBalance
+          });
         })
     );  
     this.cashfree.set(
@@ -63,9 +74,13 @@ export class ManageBalanceComponent implements OnInit, OnDestroy {
                   this.input.value!,
                   paymentId
                 )
-                .subscribe(({ balance }) => {
-                  this.balance.set(balance);
+                .subscribe(({ balance, lockedBalance }) => {
+                  this.balance.set({
+                    balance,
+                    lockedBalance
+                  });
                   this.input.reset();
+                  this.$refreshPaymentHistory.next();
                 })
               );
             }

@@ -19,9 +19,15 @@ export class OrderBookComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.socket.emitOrderBookRequest(this.eventId());
+
     this.socket.onOrderBook((orderBook: OrderBook) => {
       const orderBookArr = Array.from(Object.entries(orderBook));
       this.orderBook.set(orderBookArr);
+    });
+    
+    this.socket.onEventEnd(() => {
+      this.orderBook.set([]);
     });
   }
 

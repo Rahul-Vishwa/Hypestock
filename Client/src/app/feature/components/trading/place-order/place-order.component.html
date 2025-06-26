@@ -6,6 +6,7 @@
                 id="price" 
                 type="number"
                 [formControl]="form.controls['price']" 
+                [maxlength]="7"
                 class="w-full py-2 px-3 text-black rounded-sm outline-none" 
             />
         </div>
@@ -15,6 +16,7 @@
                 id="quantity" 
                 type="number" 
                 [formControl]="form.controls['quantity']" 
+                [maxlength]="5"
                 class="w-full py-2 px-3 text-black rounded-sm outline-none"
             />
         </div>
@@ -23,9 +25,9 @@
         <button 
             class="rounded-sm w-full py-2 bg-white text-black text-[12px]"
             [ngClass]="{
-                'bg-secondary cursor-not-allowed': disabled()
+                'bg-secondary cursor-not-allowed': disabled('buy')
             }"
-            [disabled]="disabled()"
+            [disabled]="disabled('buy')"
             (click)="placeOrder('bid')"
         >
             Buy
@@ -33,9 +35,9 @@
         <button 
             class="rounded-sm w-full py-2 bg-white text-black text-[12px]"
             [ngClass]="{
-                'bg-secondary cursor-not-allowed': disabled()
+                'bg-secondary cursor-not-allowed': disabled('sell')
             }"
-            [disabled]="disabled()"
+            [disabled]="disabled('sell')"
             (click)="placeOrder('ask')"
         >
             Sell

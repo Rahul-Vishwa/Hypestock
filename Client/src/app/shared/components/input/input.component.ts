@@ -1,12 +1,12 @@
 import { NgClass } from '@angular/common';
-import { Component, input, output } from '@angular/core';
-import { ControlValueAccessor, FormControl, FormsModule, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { Component, input, signal } from '@angular/core';
+import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-input',
   imports: [
-    FormsModule,
-    NgClass
+    NgClass,
+    ReactiveFormsModule
   ],
   templateUrl: './input.component.html',
   styleUrl: './input.component.css',
@@ -26,7 +26,7 @@ export class InputComponent implements ControlValueAccessor {
   value: string = '';
   formControl = input.required<FormControl>();
   maxlength = input<number>(100);
-  disabled = input<boolean>(false);
+  disabled = signal<boolean>(false);
 
   private onChange = (value: string) => {};
   private onTouched = () => {};
@@ -56,5 +56,9 @@ export class InputComponent implements ControlValueAccessor {
 
   get isRequired(): boolean {
     return this.formControl().hasValidator(Validators.required);
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled.set(isDisabled);
   }
 }
